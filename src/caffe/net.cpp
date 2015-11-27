@@ -22,14 +22,14 @@
 namespace caffe {
 
 template <typename Dtype>
-Net<Dtype>::Net(const NetParameter& param, const Net* root_net)
-    : root_net_(root_net) {
+Net<Dtype>::Net(const NetParameter& param, const Net* root_net, const bool is_nested)
+    : root_net_(root_net), is_nested_(is_nested) {
   Init(param);
 }
 
 template <typename Dtype>
-Net<Dtype>::Net(const string& param_file, Phase phase, const Net* root_net)
-    : root_net_(root_net) {
+Net<Dtype>::Net(const string& param_file, Phase phase, const Net* root_net, const bool is_nested)
+    : root_net_(root_net), is_nested_(is_nested) {
   NetParameter param;
   ReadNetParamsFromTextFileOrDie(param_file, &param);
   param.mutable_state()->set_phase(phase);
