@@ -38,7 +38,7 @@ Net<Dtype>::Net(const string& param_file, Phase phase, const Net* root_net, cons
 
 template <typename Dtype>
 void Net<Dtype>::Init(const NetParameter& in_param) {
-  CHECK(Caffe::root_solver() || root_net_)
+  CHECK(Caffe::root_solver() || root_net_ || is_nested_)
       << "root_net_ needs to be set for all non-root solvers";
   // Set phase from the state.
   phase_ = in_param.state().phase();
@@ -81,7 +81,7 @@ void Net<Dtype>::Init(const NetParameter& in_param) {
   bottom_need_backward_.resize(param.layer_size());
   for (int layer_id = 0; layer_id < param.layer_size(); ++layer_id) {
     // For non-root solvers, whether this layer is shared from root_net_.
-    bool share_from_root = !Caffe::root_solver()
+    bool share_from_root = !is_nested_ && !Caffe::root_solver()
         && root_net_->layers_[layer_id]->ShareInParallel();
     // Inherit phase from net if unset.
     if (!param.layer(layer_id).has_phase()) {
