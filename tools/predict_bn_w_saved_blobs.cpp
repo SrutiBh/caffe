@@ -28,12 +28,14 @@ namespace bp = boost::python;
 #include <boost/pointer_cast.hpp>
 
 #include "caffe/layers/batch_norm_layer.hpp"
+#include "caffe/layers/bn_layer.hpp"
 
 using caffe::Blob;
 using caffe::Caffe;
 using caffe::Net;
 using caffe::Layer;
 using caffe::BatchNormLayer;
+using caffe::BNLayer;
 using caffe::shared_ptr;
 using caffe::Timer;
 using caffe::vector;
@@ -242,7 +244,7 @@ int main(int argc, char** argv) {
 //  }
 //  // calculate mean (need to scannning every training data set)
 //  // for each iteration (of Forward())
-//  //   do summation of batch_mean_ (of BatchNormLayer)
+//  //   do summation of batch_mean_ (of BatchNormLayer or BNLayer)
 //  //   do summation of E(X^2) (via batch_variance_)
 //  // 
 //  // calculate variance (need to scanning every training data set)
@@ -311,7 +313,7 @@ int main(int argc, char** argv) {
 //    //LOG(INFO) << "iter: " << i; 
 //    caffe_net.ForwardPrefilled();
 //    //LOG(INFO) << "wtf1111"; 
-//    // batch normalization for each BatchNormLayer
+//    // batch normalization for each BatchNormLayer or BNLayer
 //    for (int k = 0; k < num_bn_layers; ++k) {
 //      //LOG(INFO) << "bn layer: " << k;
 //      const vector<Blob<float>*>& bottom = bottom_vecs[bn_layers[k]]; 
@@ -555,16 +557,21 @@ int main(int argc, char** argv) {
       sz.push_back(C);
       batch_mean_vecs[k]->Reshape(sz);
       batch_variance_vecs[k]->Reshape(sz);
-    }
 
-    // Assign (global) batch mean and variance.
-    const shared_ptr<BatchNormLayer<float> > layer = 
-        dynamic_pointer_cast<BatchNormLayer<float> >(test_layers[bn_layers[k]]);  
-    layer->set_batch_mean_and_batch_variance(
-        *batch_mean_vecs[k].get(), *batch_variance_vecs[k].get());
-    //Blob<float>& batch_mean_tmp = layer->batch_mean(); 
-    //LOG(INFO) << "layer->batch_mean_vecs_.count(): " << batch_mean_tmp.count() 
-    //          << ", batch_mean_vects" << batch_mean_vecs[k]->count();
+      // Assign (global) batch mean and variance.
+      const shared_ptr<BatchNormLayer<float> > layer =
+          dynamic_pointer_cast<BatchNormLayer<float> >(test_layers[bn_layers[k]]);
+      layer->set_batch_mean_and_batch_variance(
+          *batch_mean_vecs[k].get(), *batch_variance_vecs[k].get());
+      //Blob<float>& batch_mean_tmp = layer->batch_mean();
+      //LOG(INFO) << "layer->batch_mean_vecs_.count(): " << batch_mean_tmp.count()
+      //          << ", batch_mean_vects" << batch_mean_vecs[k]->count();
+
+    } else { // BN
+      // Assign (global) batch mean and variance.
+      const shared_ptr<BNLayer<float> > layer =
+          dynamic_pointer_cast<BNLayer<float> >(test_layers[bn_layers[k]]);
+    }
   }
 
 //  // Eval test accuracy
